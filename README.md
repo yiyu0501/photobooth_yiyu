@@ -8,7 +8,7 @@ This project lets visitors take a 3-shot photo strip in the browser, apply theme
 
 If you deploy this repository with GitHub Pages and keep `index.html` in the project root, the direct link is:
 
-**https://yiyu0501.github.io/photobooth/**
+**https://yiyu0501.github.io/photobooth_yiyu/**
 
 ## What it does
 
