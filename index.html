@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Utopia Photo Booth</title>
+<style>
+  :root {
+    --bg:#efefef; --card:#fff; --line:#e5e7eb; --text:#111827; --muted:#6b7280; --blue:#2563eb;
+    --shadow:0 10px 28px rgba(15,23,42,.08); --radius:22px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Noto Sans TC",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);background:var(--bg)}
+  button,input{font:inherit}
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid rgba(17,24,39,.06)}
+  .brand{display:flex;align-items:center;gap:12px;font-weight:900;font-size:1.1rem}
+  .brand-mark{width:42px;height:42px;border-radius:12px;background:#111827;color:#fff;display:grid;place-items:center;font-weight:900}
+  .top-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .ghost-btn,.primary-btn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:999px;padding:10px 14px;cursor:pointer}
+  .primary-btn{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .page{max-width:1260px;margin:24px auto 60px;padding:0 18px}
+  .card{background:var(--card);border:1px solid #dedede;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .section{padding:18px}
+  .section-title{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+  .small{color:var(--muted);font-size:.92rem;line-height:1.55}
+  .layout-head{display:grid;gap:14px}
+  .layout-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .layout-badge{display:inline-flex;align-items:center;gap:8px;border-radius:999px;background:#e5edff;color:#1d4ed8;padding:8px 12px;font-weight:800}
+  .frame-area{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+  .frame-list{display:flex;gap:12px;flex-wrap:wrap}
+  .frame-chip{border:2px solid #e5e7eb;background:#fff;border-radius:18px;cursor:pointer;padding:10px;width:150px}
+  .frame-chip.active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+  .frame-chip .thumb{width:100%;aspect-ratio:2/3;background:#f3f4f6;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;display:grid;place-items:center}
+  .frame-chip img{width:100%;height:100%;object-fit:contain;display:block}
+  .frame-chip .name{margin-top:8px;text-align:center;color:#374151;font-size:.88rem;font-weight:800}
+
+  .shoot-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(320px,.85fr);gap:18px;padding:0 18px 18px}
+  .camera-card,.live-card{background:#fafafa;border:1px solid var(--line);border-radius:20px;padding:14px}
+  .camera-stage{position:relative;width:100%;aspect-ratio:4/3;background:#d1d5db;border-radius:22px;overflow:hidden;border:1px solid #e5e7eb}
+  video{width:100%;height:100%;display:block;object-fit:cover;background:#d1d5db;transform:scaleX(-1) scale(var(--previewZoom,1));transform-origin:center center}
+  .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .overlay .count{color:#fff;font-size:clamp(76px,12vw,128px);font-weight:900;text-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .overlay .message{color:#fff;background:rgba(0,0,0,.45);border-radius:18px;padding:14px 18px;font-size:1.2rem;font-weight:800}
+  .status-line{text-align:center;color:var(--muted);font-size:1rem;margin:14px 0 12px;font-weight:700;min-height:1.5em}
+  .camera-controls{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap}
+  .shutter-btn{width:86px;height:86px;border-radius:50%;border:8px solid #fff;background:#ef4444;box-shadow:0 0 0 4px #d1d5db inset,0 10px 20px rgba(239,68,68,.24);cursor:pointer}
+  .shutter-btn:disabled{opacity:.55;cursor:not-allowed}
+  .control-card{min-width:126px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:16px;padding:12px 14px;text-align:center;color:#374151;font-weight:800}
+  .control-card small{display:block;color:var(--muted);font-weight:700;margin-top:4px}
+  .pill-tabs{display:flex;gap:10px;flex-wrap:wrap}
+  .pill{border:none;border-radius:999px;background:#ececec;color:#4b5563;padding:10px 16px;font-weight:800;cursor:pointer}
+  .pill.active{background:var(--blue);color:#fff}
+  .camera-config-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:0 18px 18px}
+  .camera-config-block{display:grid;gap:8px}
+  .camera-config-block label{font-size:.9rem;font-weight:800;color:#374151}
+  .camera-select{min-width:240px;padding:10px 12px;border-radius:14px;border:1px solid #d1d5db;background:#fff}
+  .hint-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#f3f4f6;color:#4b5563;font-size:.9rem;font-weight:700}
+  .shot-strip{display:flex;gap:10px;overflow:auto;padding-top:14px}
+  .shot-thumb{width:96px;aspect-ratio:2/3;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;background:#111;flex:0 0 auto}
+  .shot-thumb img{width:100%;height:100%;object-fit:cover}
+
+  .live-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .live-shell{background:#0f172a;border:1px solid #0f172a;border-radius:18px;padding:12px;min-height:420px;display:grid;place-items:center}
+  .live-shell img{width:100%;height:auto;max-height:640px;display:block;object-fit:contain;background:#0f172a}
+  .live-note{margin-top:10px;color:var(--muted);font-size:.9rem}
+
+  .bottom-preview{margin-top:24px}
+  .preview-box{padding:18px}
+  .preview-shell{border:1px dashed #d1d5db;border-radius:22px;padding:18px;background:#fafafa;display:grid;gap:16px}
+  .final-area{background:#0f172a;border:1px solid #111827;border-radius:18px;padding:14px}
+  #finalPreviewImage{width:100%;height:auto;display:block;max-width:420px;margin:0 auto;background:#0f172a}
+  .preview-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .preview-actions button{border-radius:14px;padding:12px 16px;border:1px solid var(--line);background:#fff;cursor:pointer}
+
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(17,24,39,.35);display:none;z-index:60}
+  .drawer-backdrop.show{display:block}
+  .drawer{position:fixed;top:0;right:0;width:min(420px,100vw);height:100vh;background:#fff;z-index:61;transform:translateX(100%);transition:transform .22s ease;box-shadow:-20px 0 50px rgba(0,0,0,.12);display:flex;flex-direction:column}
+  .drawer.show{transform:translateX(0)}
+  .drawer-head{padding:18px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}
+  .drawer-body{padding:18px;overflow:auto;display:grid;gap:18px}
+  .field{display:grid;gap:8px}
+  .field label{font-weight:800}
+  .field input[type="text"],.field input[type="password"],.field input[type="file"]{width:100%;padding:12px 14px;border-radius:14px;border:1px solid #d1d5db}
+  .staff-frames{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .staff-item{border:1px solid #e5e7eb;border-radius:16px;padding:10px;background:#fff;display:grid;gap:8px}
+  .staff-item .thumb{width:100%;aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:#f3f4f6}
+  .staff-item img{width:100%;height:100%;object-fit:contain;display:block}
+  .staff-item .meta{font-size:.88rem;color:#374151;font-weight:700}
+  .staff-item button{border-radius:12px;border:1px solid #fecaca;background:#fff1f2;color:#be123c;padding:8px 10px;cursor:pointer}
+
+  .handoff-overlay{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:24px}
+  .handoff-overlay.show{display:flex}
+  .handoff-card{max-width:620px;width:min(100%,620px);background:#fff;border-radius:28px;padding:28px 24px;box-shadow:0 25px 60px rgba(0,0,0,.28);text-align:center}
+  .handoff-card h2{margin:0 0 14px;font-size:clamp(1.6rem,3vw,2.2rem)}
+  .handoff-card p{margin:0;color:#4b5563;line-height:1.7;font-size:1.05rem}
+  .handoff-tip{margin-top:18px;display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-weight:800}
+  @media (max-width: 980px) {
+    .shoot-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">益</div>
+    <div>益智與設計思考社</div>
+  </div>
+  <div class="top-actions">
+    <button class="ghost-btn" id="startCameraTopBtn">啟動相機</button>
+    <button class="ghost-btn" id="staffModeBtn">工作人員模式</button>
+  </div>
+</header>
+
+<main class="page">
+  <section class="card section">
+    <div class="layout-head">
+      <div class="layout-title-row">
+        <div>
+          <div class="section-title" style="margin-bottom:8px;">
+            <h2 style="margin:0;font-size:1.25rem;">三張拍貼條版型</h2>
+            <span class="layout-badge">固定 4 × 6 英寸輸出</span>
+          </div>
+          <div class="small">這版只保留 3 張拍貼條。請先選相框，再拍照。右邊會即時顯示目前已經進框的樣子。</div>
+        </div>
+        <div class="small" id="frameHint">目前已預載 1 款相框。若要換新相框，可從右上角工作人員模式上傳透明 PNG。</div>
+      </div>
+
+      <div class="frame-area">
+        <div class="field-title" style="font-weight:900;">相框選擇</div>
+        <div class="frame-list" id="frameList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="section-title section" style="padding-bottom:0;">
+      <h2 style="margin:0;font-size:1.25rem;">拍照介面</h2>
+      <div class="pill-tabs" id="countdownTabs"></div>
+    </div>
+
+    <div class="camera-config-row">
+      <div class="camera-config-block">
+        <label for="cameraSelect">鏡頭選擇</label>
+        <select id="cameraSelect" class="camera-select">
+          <option value="">啟動相機後載入可用鏡頭</option>
+        </select>
+      </div>
+      <div class="camera-config-block">
+        <label>拍攝視角</label>
+        <div class="pill-tabs" id="lensTabs"></div>
+      </div>
+      <div class="hint-chip" id="cameraModeHint">若外接相機是固定廣角，切到「標準 1x」會用中心裁切模擬。</div>
+    </div>
+
+    <div class="shoot-grid">
+      <div class="camera-card">
+        <div class="camera-stage" id="cameraStage">
+          <video id="video" playsinline autoplay muted></video>
+          <div class="overlay" id="overlay" hidden>
+            <div class="count" id="overlayCount"></div>
+            <div class="message" id="overlayMessage" hidden></div>
+          </div>
+        </div>
+
+        <div class="status-line" id="captureStatus">尚未拍攝，請先啟動相機。</div>
+
+        <div class="camera-controls">
+          <div class="control-card" id="timerDisplay">5 秒<small>固定倒數 / 間隔</small></div>
+          <button class="shutter-btn" id="shutterBtn" aria-label="開始拍照" disabled></button>
+          <button class="ghost-btn" id="uploadPhotosBtn" type="button">上傳照片</button>
+          <input type="file" id="uploadPhotosInput" accept="image/*" multiple hidden />
+          <div class="control-card">3 張<small>固定拍攝數</small></div>
+        </div>
+
+        <div class="shot-strip" id="shotStrip"></div>
+      </div>
+
+      <div class="live-card">
+        <div class="live-title">
+          <strong>即時相框預覽</strong>
+          <span class="small">每拍一張就會先進框</span>
+        </div>
+        <div class="live-shell">
+          <img id="livePreviewImage" alt="live preview" />
+        </div>
+        <div class="live-note" id="livePreviewStatus">拍完第一張後，這裡就會開始顯示進框效果。</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card bottom-preview" id="resultSection" hidden>
+    <div class="preview-box">
+      <div class="section-title" style="margin-bottom:12px;">
+        <h2 style="margin:0;font-size:1.15rem;">下載前成品預覽</h2>
+      </div>
+      <div class="preview-shell">
+        <div class="final-area"><img id="finalPreviewImage" alt="final output" /></div>
+        <div class="small" id="resultNote">成品固定為 4 × 6 英寸，下載後可用 AirDrop 傳到平板再做後續輸出。</div>
+        <div class="preview-actions">
+          <button id="downloadBtn">下載成品</button>
+          <button id="resetBtn">重新拍攝</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="handoff-overlay" id="handoffOverlay" hidden>
+  <div class="handoff-card">
+    <h2>現在請工作人員進場</h2>
+    <p>拍攝已完成。請參加者先離開拍照區，交由工作人員進行下載與輸出處理。</p>
+    <div class="handoff-tip">點擊任意位置繼續</div>
+  </div>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="staffDrawer">
+  <div class="drawer-head">
+    <strong>工作人員模式</strong>
+    <button class="ghost-btn" id="closeDrawerBtn">關閉</button>
+  </div>
+  <div class="drawer-body">
+    <div class="small">這版預設已經帶入你給的三格相框。若要換別張透明 PNG，可以在下面上傳；系統會先嘗試抓透明照片窗並自動對齊。</div>
+    <div class="field">
+      <label for="staffPassword">工作人員密碼（可留空）</label>
+      <input type="password" id="staffPassword" placeholder="有需要再設定" />
+    </div>
+    <div class="field">
+      <label for="frameUploadInput">上傳相框 PNG</label>
+      <input type="file" id="frameUploadInput" accept="image/png" multiple />
+      <div class="small">建議使用透明背景 PNG。若邊緣還有一點誤差，之後再針對這張版型微調。</div>
+    </div>
+    <div class="field">
+      <label>已上傳相框</label>
+      <div class="staff-frames" id="staffFrames"></div>
+      <button class="ghost-btn" id="clearFramesBtn">清空自訂相框，恢復預設</button>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="primary-btn" id="saveStaffSettingsBtn">儲存設定</button>
+    </div>
+  </div>
+</aside>
+
+<script>
+const PAPER_4X6 = { w: 1200, h: 1800 };
+const DEFAULT_SLOT_HINTS = [
+  { x: 320, y: 104, w: 614, h: 344 },
+  { x: 320, y: 499, w: 614, h: 348 },
+  { x: 317, y: 897, w: 620, h: 352 }
+];
+
+const PRESET_FRAMES = [
+  {
+    id: 'classic-cat',
+    name: 'Utopia Cat 三格版',
+    dataUrl: './images/frame.png',
+    slotHints: DEFAULT_SLOT_HINTS
+  },
+  {
+    id: 'movie-fest-blue',
+    name: 'Movie Fest 藍金版',
+    dataUrl: './images/01.png.png',
+    slotHints: DEFAULT_SLOT_HINTS
+  },
+  {
+    id: 'movie-fest-night',
+    name: 'Movie Fest 夜景版',
+    dataUrl: './images/02.png.png',
+    slotHints: DEFAULT_SLOT_HINTS
+  },
+  {
+    id: 'movie-fest-pixel',
+    name: 'Movie Fest 像素版',
+    dataUrl: './images/03.png.png',
+    slotHints: DEFAULT_SLOT_HINTS
+  }
+];
+
+const DEFAULT_FRAME = PRESET_FRAMES[0];
+
+const state = {
+  countdown: 5,
+  frames: [...PRESET_FRAMES],
+  selectedFrameId: DEFAULT_FRAME.id,
+  shots: [],
+  stream: null,
+  finalDataUrl: '',
+  facingMode: 'user',
+  awaitingStaff: false,
+};
+
+const frameList = document.getElementById('frameList');
+const frameHint = document.getElementById('frameHint');
+const countdownTabs = document.getElementById('countdownTabs');
+const lensTabs = document.getElementById('lensTabs');
+const cameraSelect = document.getElementById('cameraSelect');
+const cameraStage = document.getElementById('cameraStage');
+const cameraModeHint = document.getElementById('cameraModeHint');
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const overlayCount = document.getElementById('overlayCount');
+const overlayMessage = document.getElementById('overlayMessage');
+const captureStatus = document.getElementById('captureStatus');
+const shutterBtn = document.getElementById('shutterBtn');
+const uploadPhotosBtn = document.getElementById('uploadPhotosBtn');
+const uploadPhotosInput = document.getElementById('uploadPhotosInput');
+const startCameraTopBtn = document.getElementById('startCameraTopBtn');
+const timerDisplay = document.getElementById('timerDisplay');
+const shotStrip = document.getElementById('shotStrip');
+const livePreviewImage = document.getElementById('livePreviewImage');
+const livePreviewStatus = document.getElementById('livePreviewStatus');
+const resultSection = document.getElementById('resultSection');
+const finalPreviewImage = document.getElementById('finalPreviewImage');
+const downloadBtn = document.getElementById('downloadBtn');
+const resetBtn = document.getElementById('resetBtn');
+const resultNote = document.getElementById('resultNote');
+const handoffOverlay = document.getElementById('handoffOverlay');
+
+const staffModeBtn = document.getElementById('staffModeBtn');
+const drawerBackdrop = document.getElementById('drawerBackdrop');
+const staffDrawer = document.getElementById('staffDrawer');
+const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+const staffPasswordInput = document.getElementById('staffPassword');
+const frameUploadInput = document.getElementById('frameUploadInput');
+const staffFrames = document.getElementById('staffFrames');
+const clearFramesBtn = document.getElementById('clearFramesBtn');
+const saveStaffSettingsBtn = document.getElementById('saveStaffSettingsBtn');
+
+function currentFrame() {
+  return state.frames.find(f => f.id === state.selectedFrameId) || state.frames[0] || DEFAULT_FRAME;
+}
+
+function saveSettings() {
+  const presetIds = new Set(PRESET_FRAMES.map(f => f.id));
+  const customFrames = state.frames.filter(f => !presetIds.has(f.id));
+  localStorage.setItem('photoBoothV9Settings', JSON.stringify({
+    countdown: state.countdown,
+    customFrames,
+    selectedFrameId: state.selectedFrameId,
+    staffPassword: staffPasswordInput.value
+  }));
+  localStorage.setItem('photoBoothV9StaffPassword', staffPasswordInput.value || '');
+}
+
+function loadSettings() {
+  const raw = localStorage.getItem('photoBoothV9Settings');
+  if (!raw) return;
+  try {
+    const settings = JSON.parse(raw);
+    const customFrames = Array.isArray(settings.customFrames) ? settings.customFrames : [];
+    state.frames = [...PRESET_FRAMES, ...customFrames];
+    state.selectedFrameId = settings.selectedFrameId || DEFAULT_FRAME.id;
+    if (!state.frames.some(f => f.id === state.selectedFrameId)) state.selectedFrameId = DEFAULT_FRAME.id;
+    state.selectedDeviceId = settings.selectedDeviceId || '';
+    state.viewMode = settings.viewMode || 'standard';
+    state.previewZoom = state.viewMode === 'wide' ? 1 : 1.7;
+    state.countdown = 5;
+    staffPasswordInput.value = settings.staffPassword || '';
+  } catch (e) {
+    console.error(e);
+    state.frames = [...PRESET_FRAMES];
+    state.selectedFrameId = DEFAULT_FRAME.id;
+  }
+}
+
+function renderCountdownTabs() {
+  countdownTabs.innerHTML = '';
+  const btn = document.createElement('button');
+  btn.className = 'pill active';
+  btn.textContent = '固定 5 秒';
+  btn.disabled = true;
+  countdownTabs.appendChild(btn);
+}
+
+
+function renderLensTabs() {
+  lensTabs.innerHTML = '';
+  [
+    { id: 'wide', label: '廣角 0.5x' },
+    { id: 'standard', label: '標準 1x' }
+  ].forEach(mode => {
+    const btn = document.createElement('button');
+    btn.className = 'pill' + (state.viewMode === mode.id ? ' active' : '');
+    btn.textContent = mode.label;
+    btn.onclick = async () => {
+      state.viewMode = mode.id;
+      state.previewZoom = mode.id === 'wide' ? 1 : 1.7;
+      applyPreviewZoom();
+      await applyTrackZoomIfPossible();
+      renderLensTabs();
+      renderMeta();
+      await updateLivePreview();
+      saveSettings();
+    };
+    lensTabs.appendChild(btn);
+  });
+}
+
+async function refreshCameraList() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter(d => d.kind === 'videoinput');
+    cameraSelect.innerHTML = '';
+    if (!cameras.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = '沒有偵測到可用鏡頭';
+      cameraSelect.appendChild(option);
+      return;
+    }
+    cameras.forEach((cam, index) => {
+      const option = document.createElement('option');
+      option.value = cam.deviceId;
+      option.textContent = cam.label || `鏡頭 ${index + 1}`;
+      if (cam.deviceId === state.selectedDeviceId) option.selected = true;
+      cameraSelect.appendChild(option);
+    });
+
+    if (!state.selectedDeviceId && cameras.length) {
+      const preferred = cameras.find(cam => /SJCAM|USB|PC Camera|webcam/i.test(cam.label)) || cameras[0];
+      state.selectedDeviceId = preferred.deviceId;
+      cameraSelect.value = state.selectedDeviceId;
+      saveSettings();
+    } else if (state.selectedDeviceId) {
+      cameraSelect.value = state.selectedDeviceId;
+    }
+  } catch (err) {
+    console.warn('refreshCameraList failed', err);
+  }
+}
+
+function applyPreviewZoom() {
+  cameraStage.style.setProperty('--previewZoom', String(state.previewZoom || 1));
+  if (cameraModeHint) {
+    cameraModeHint.textContent = state.viewMode === 'wide'
+      ? '目前為廣角 0.5x。若鏡頭本身是超廣角，這裡會顯示完整視角。'
+      : '目前為標準 1x。若鏡頭本身是固定廣角，這裡會用中心裁切模擬較接近拍貼機的視角。';
+  }
+}
+
+async function applyTrackZoomIfPossible() {
+  try {
+    const track = state.stream?.getVideoTracks?.()[0];
+    if (!track || typeof track.getCapabilities !== 'function') return;
+    const capabilities = track.getCapabilities();
+    if (!capabilities || typeof capabilities.zoom === 'undefined') return;
+    const min = capabilities.zoom?.min ?? 1;
+    const max = capabilities.zoom?.max ?? min;
+    const target = state.viewMode === 'wide' ? min : Math.min(max, Math.max(min, min * 1.6));
+    await track.applyConstraints({ advanced: [{ zoom: target }] });
+  } catch (err) {
+    console.warn('applyTrackZoomIfPossible failed', err);
+  }
+}
+
+function renderFrames() {
+  frameList.innerHTML = '';
+  staffFrames.innerHTML = '';
+  frameHint.hidden = state.frames.length > 0;
+
+  state.frames.forEach(frame => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'frame-chip' + (state.selectedFrameId === frame.id ? ' active' : '');
+    chip.innerHTML = `<div class="thumb"><img src="${frame.dataUrl}" alt="${frame.name}"></div><div class="name">${frame.name}</div>`;
+    chip.addEventListener('click', () => {
+      state.selectedFrameId = frame.id;
+      renderFrames();
+      updateLivePreview();
+      saveSettings();
+    });
+    frameList.appendChild(chip);
+
+    const staffItem = document.createElement('div');
+    staffItem.className = 'staff-item';
+    staffItem.innerHTML = `<div class="thumb"><img src="${frame.dataUrl}" alt="${frame.name}"></div><div class="meta">${frame.name}</div>`;
+    if (frame.id !== DEFAULT_FRAME.id) {
+      const del = document.createElement('button');
+      del.textContent = '刪除';
+      del.addEventListener('click', () => {
+        const presetIds = new Set(PRESET_FRAMES.map(f => f.id));
+        state.frames = [...PRESET_FRAMES, ...state.frames.filter(f => !presetIds.has(f.id) && f.id !== frame.id)];
+        if (state.selectedFrameId === frame.id) state.selectedFrameId = DEFAULT_FRAME.id;
+        renderFrames();
+        updateLivePreview();
+        saveSettings();
+      });
+      staffItem.appendChild(del);
+    }
+    staffFrames.appendChild(staffItem);
+  });
+}
+
+function renderShots() {
+  shotStrip.innerHTML = '';
+  state.shots.forEach((shot, idx) => {
+    const item = document.createElement('div');
+    item.className = 'shot-thumb';
+    item.innerHTML = `<img src="${shot}" alt="shot ${idx + 1}">`;
+    shotStrip.appendChild(item);
+  });
+}
+
+function renderMeta() {
+  timerDisplay.innerHTML = `5 秒<small>固定倒數 / 間隔</small>`;
+  const currentCameraText = cameraSelect.selectedOptions?.[0]?.textContent || '尚未選擇鏡頭';
+  captureStatus.textContent = state.shots.length
+    ? `已拍攝 ${state.shots.length} / 3 張照片｜${currentCameraText}｜${state.viewMode === 'wide' ? '廣角 0.5x' : '標準 1x'}`
+    : (state.stream
+        ? `已啟動相機，準備拍攝 3 張。｜${currentCameraText}｜${state.viewMode === 'wide' ? '廣角 0.5x' : '標準 1x'}`
+        : '尚未拍攝，請先啟動相機。');
+}
+
+async function startCamera(deviceId = '') {
+  try {
+    if (state.stream) state.stream.getTracks().forEach(t => t.stop());
+    const videoConstraints = deviceId
+      ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+      : { facingMode: 'user', width: { ideal: 1920 }, height: { ideal: 1080 } };
+    state.stream = await navigator.mediaDevices.getUserMedia({
+      video: videoConstraints,
+      audio: false
+    });
+    video.srcObject = state.stream;
+    await video.play();
+    shutterBtn.disabled = false;
+    const currentTrack = state.stream.getVideoTracks?.()[0];
+    await refreshCameraList();
+    if (currentTrack?.getSettings?.().deviceId) {
+      state.selectedDeviceId = currentTrack.getSettings().deviceId;
+      cameraSelect.value = state.selectedDeviceId;
+    }
+    applyPreviewZoom();
+    await applyTrackZoomIfPossible();
+    renderMeta();
+    saveSettings();
+  } catch (err) {
+    alert('相機啟動失敗，請確認瀏覽器權限、localhost/https，並先確認外接鏡頭已被系統辨識。');
+    console.error(err);
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function showCountdown(sec) {
+  overlay.hidden = false;
+  overlayCount.hidden = false;
+  overlayMessage.hidden = true;
+  for (let i = sec; i >= 1; i--) {
+    overlayCount.textContent = i;
+    await sleep(1000);
+  }
+  overlay.hidden = true;
+}
+
+async function showMessage(msg, ms = 550) {
+  overlay.hidden = false;
+  overlayCount.hidden = true;
+  overlayMessage.hidden = false;
+  overlayMessage.textContent = msg;
+  await sleep(ms);
+  overlay.hidden = true;
+}
+
+function captureFrame() {
+  const canvas = document.createElement('canvas');
+  const vw = video.videoWidth || 1280;
+  const vh = video.videoHeight || 720;
+  canvas.width = vw; canvas.height = vh;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, vw, vh);
+  const zoom = state.previewZoom || 1;
+  const sw = vw / zoom;
+  const sh = vh / zoom;
+  const sx = (vw - sw) / 2;
+  const sy = (vh - sh) / 2;
+  ctx.save();
+  ctx.translate(vw, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, sx, sy, sw, sh, 0, 0, vw, vh);
+  ctx.restore();
+  return canvas.toDataURL('image/png');
+}
+
+async function runCaptureSequence() {
+  if (state.awaitingStaff) return;
+  if (!state.stream) { await startCamera(); if (!state.stream) return; }
+  shutterBtn.disabled = true;
+  uploadPhotosBtn.disabled = true;
+  if (state.finalDataUrl) {
+    state.shots = [];
+    state.finalDataUrl = '';
+    resultSection.hidden = true;
+    renderShots();
+    await updateLivePreview();
+  }
+
+  const startIndex = state.shots.length;
+  if (startIndex >= 3) {
+    captureStatus.textContent = '已經有 3 張照片，請下載或重拍。';
+    shutterBtn.disabled = false;
+    uploadPhotosBtn.disabled = false;
+    return;
+  }
+
+  renderMeta();
+  await updateLivePreview();
+
+  for (let i = startIndex; i < 3; i++) {
+    captureStatus.textContent = `第 ${i + 1} / 3 張，倒數 5 秒`;
+    await showCountdown(5);
+    state.shots.push(captureFrame());
+    renderShots();
+    renderMeta();
+    await updateLivePreview();
+    if (i < 2) await showMessage('下一張', 450);
+  }
+  captureStatus.textContent = '正在生成成品…';
+  await buildFinalImage();
+  captureStatus.textContent = '拍攝完成，請通知工作人員進場。';
+  shutterBtn.disabled = false;
+  uploadPhotosBtn.disabled = false;
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function drawCover(ctx, img, box, bleed = 14) {
+  const targetX = box.x - bleed;
+  const targetY = box.y - bleed;
+  const targetW = box.w + bleed * 2;
+  const targetH = box.h + bleed * 2;
+  const imgRatio = img.width / img.height;
+  const boxRatio = targetW / targetH;
+  let sx = 0, sy = 0, sw = img.width, sh = img.height;
+  if (imgRatio > boxRatio) {
+    sw = img.height * boxRatio;
+    sx = (img.width - sw) / 2;
+  } else {
+    sh = img.width / boxRatio;
+    sy = (img.height - sh) / 2;
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, targetX, targetY, targetW, targetH);
+}
+
+function drawPlaceholder(ctx, box, index) {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(box.x, box.y, box.w, box.h);
+  ctx.strokeStyle = 'rgba(255,255,255,.18)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(box.x + 1.5, box.y + 1.5, box.w - 3, box.h - 3);
+  ctx.fillStyle = 'rgba(255,255,255,.32)';
+  ctx.font = `bold ${Math.max(28, Math.round(box.h * 0.14))}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`${index + 1}`, box.x + box.w / 2, box.y + box.h / 2);
+}
+
+function detectTransparentSlots(frameImg, expectedCount, outW, outH) {
+  const off = document.createElement('canvas');
+  off.width = outW; off.height = outH;
+  const octx = off.getContext('2d', { willReadFrequently: true });
+  octx.clearRect(0, 0, outW, outH);
+  octx.drawImage(frameImg, 0, 0, outW, outH);
+  const data = octx.getImageData(0, 0, outW, outH).data;
+  const visited = new Uint8Array(outW * outH);
+  const alphaThreshold = 26;
+  const minArea = Math.max(12000, Math.round(outW * outH * 0.0035));
+  const comps = [];
+  const stackX = [], stackY = [];
+  const alphaAt = idx => data[idx * 4 + 3];
+
+  for (let y = 0; y < outH; y++) {
+    for (let x = 0; x < outW; x++) {
+      const idx = y * outW + x;
+      if (visited[idx] || alphaAt(idx) > alphaThreshold) continue;
+      let minX = x, maxX = x, minY = y, maxY = y, area = 0, touchesEdge = false;
+      visited[idx] = 1; stackX.push(x); stackY.push(y);
+      while (stackX.length) {
+        const cx = stackX.pop(); const cy = stackY.pop(); area++;
+        if (cx < minX) minX = cx; if (cx > maxX) maxX = cx; if (cy < minY) minY = cy; if (cy > maxY) maxY = cy;
+        if (cx === 0 || cy === 0 || cx === outW - 1 || cy === outH - 1) touchesEdge = true;
+        const neighbors = [[cx-1,cy],[cx+1,cy],[cx,cy-1],[cx,cy+1]];
+        for (const [nx, ny] of neighbors) {
+          if (nx < 0 || ny < 0 || nx >= outW || ny >= outH) continue;
+          const nIdx = ny * outW + nx;
+          if (visited[nIdx]) continue;
+          visited[nIdx] = 1;
+          if (alphaAt(nIdx) <= alphaThreshold) { stackX.push(nx); stackY.push(ny); }
+        }
+      }
+      const bw = maxX - minX + 1, bh = maxY - minY + 1;
+      if (!touchesEdge && area >= minArea && bw >= 150 && bh >= 150) {
+        comps.push({ area, x: minX, y: minY, w: bw, h: bh });
+      }
+    }
+  }
+  const chosen = comps.sort((a,b) => b.area - a.area).slice(0, expectedCount).sort((a,b) => (a.y - b.y) || (a.x - b.x));
+  return chosen.length === expectedCount ? chosen : [];
+}
+
+async function getOutputSlots(frame) {
+  if (!frame) return DEFAULT_FRAME.slotHints;
+  if (Array.isArray(frame.slotHints) && frame.slotHints.length === 3) return frame.slotHints;
+  frame.slotCache = frame.slotCache || null;
+  if (frame.slotCache) return frame.slotCache;
+  try {
+    const frameImg = await loadImage(frame.dataUrl);
+    const detected = detectTransparentSlots(frameImg, 3, PAPER_4X6.w, PAPER_4X6.h);
+    if (detected.length === 3) {
+      frame.slotCache = detected;
+      return detected;
+    }
+  } catch (err) {
+    console.warn('frame slot detect failed', err);
+  }
+  return DEFAULT_FRAME.slotHints;
+}
+
+async function composeImage(shotDataUrls, finalMode = false) {
+  const canvas = document.createElement('canvas');
+  canvas.width = PAPER_4X6.w; canvas.height = PAPER_4X6.h;
+  const ctx = canvas.getContext('2d');
+  const frame = currentFrame();
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const outputSlots = await getOutputSlots(frame);
+  const shotImages = await Promise.all(shotDataUrls.map(loadImage));
+  for (let i = 0; i < outputSlots.length; i++) {
+    const box = outputSlots[i];
+    if (shotImages[i]) drawCover(ctx, shotImages[i], box, 18);
+    else if (!finalMode) drawPlaceholder(ctx, box, i);
+  }
+  if (frame) {
+    const frameImg = await loadImage(frame.dataUrl);
+    ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+  }
+  return canvas.toDataURL('image/png');
+}
+
+async function updateLivePreview() {
+  const temp = await composeImage(state.shots, false);
+  livePreviewImage.src = temp;
+  if (state.shots.length === 0) {
+    livePreviewStatus.textContent = '先選好相框後按下拍照，或使用旁邊的上傳照片功能。拍完或上傳第一張後，右邊就會看到照片先進入第 1 格。';
+  } else if (state.shots.length < 3) {
+    livePreviewStatus.textContent = `已拍 ${state.shots.length} / 3 張，下一張拍之前會先看到目前進框效果。`;
+  } else if (state.awaitingStaff) {
+    livePreviewStatus.textContent = '拍攝已完成，等待工作人員接手下載。';
+  } else {
+    livePreviewStatus.textContent = '已拍攝完成，下面可以查看成品並下載。';
+  }
+}
+
+async function buildFinalImage() {
+  state.finalDataUrl = await composeImage(state.shots, true);
+  finalPreviewImage.src = state.finalDataUrl;
+  state.awaitingStaff = true;
+  resultSection.hidden = true;
+  handoffOverlay.hidden = false;
+  handoffOverlay.classList.add('show');
+  resultNote.textContent = '成品已生成，請先下載到本機，再以 AirDrop 傳送到平板進行後續輸出。';
+  await updateLivePreview();
+}
+
+function resetCapture() {
+  state.shots = [];
+  state.finalDataUrl = '';
+  state.awaitingStaff = false;
+  finalPreviewImage.src = '';
+  resultSection.hidden = true;
+  if (uploadPhotosInput) uploadPhotosInput.value = '';
+  uploadPhotosBtn.disabled = false;
+  handoffOverlay.hidden = true;
+  handoffOverlay.classList.remove('show');
+  renderShots();
+  renderMeta();
+  updateLivePreview();
+}
+
+function openDrawer() {
+  const savedPassword = localStorage.getItem('photoBoothV9StaffPassword') || '';
+  if (savedPassword) {
+    const input = prompt('請輸入工作人員密碼');
+    if (input !== savedPassword) return;
+  }
+  drawerBackdrop.classList.add('show');
+  staffDrawer.classList.add('show');
+}
+function closeDrawer() {
+  drawerBackdrop.classList.remove('show');
+  staffDrawer.classList.remove('show');
+}
+
+function downloadDataUrl(dataUrl, filename) {
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  a.click();
+}
+
+
+startCameraTopBtn.addEventListener('click', () => startCamera(state.selectedDeviceId || ''));
+cameraSelect.addEventListener('change', async () => {
+  state.selectedDeviceId = cameraSelect.value;
+  saveSettings();
+  await startCamera(state.selectedDeviceId);
+});
+shutterBtn.addEventListener('click', runCaptureSequence);
+uploadPhotosBtn.addEventListener('click', () => uploadPhotosInput.click());
+uploadPhotosInput.addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'));
+  if (!files.length) return;
+  if (state.awaitingStaff) return;
+  if (state.finalDataUrl) {
+    state.shots = [];
+    state.finalDataUrl = '';
+    resultSection.hidden = true;
+  }
+  const remaining = Math.max(0, 3 - state.shots.length);
+  const selected = files.slice(0, remaining || 3);
+  for (const file of selected) {
+    const dataUrl = await readFileAsDataUrl(file);
+    state.shots.push(dataUrl);
+  }
+  renderShots();
+  renderMeta();
+  await updateLivePreview();
+  uploadPhotosInput.value = '';
+  if (state.shots.length >= 3) {
+    captureStatus.textContent = '正在生成成品…';
+    await buildFinalImage();
+    captureStatus.textContent = '已使用上傳照片完成，請通知工作人員進場。';
+  } else {
+    captureStatus.textContent = `已上傳 ${state.shots.length} / 3 張照片，可繼續上傳或按拍照補滿。`;
+  }
+});
+downloadBtn.addEventListener('click', () => {
+  if (!state.finalDataUrl) return;
+  downloadDataUrl(state.finalDataUrl, `photo-booth-${Date.now()}.png`);
+});
+resetBtn.addEventListener('click', resetCapture);
+
+handoffOverlay.addEventListener('click', () => {
+  if (!state.awaitingStaff) return;
+  state.awaitingStaff = false;
+  handoffOverlay.hidden = true;
+  handoffOverlay.classList.remove('show');
+  resultSection.hidden = false;
+  updateLivePreview();
+  resultSection.scrollIntoView({ behavior:'smooth', block:'start' });
+});
+
+staffModeBtn.addEventListener('click', openDrawer);
+closeDrawerBtn.addEventListener('click', closeDrawer);
+drawerBackdrop.addEventListener('click', closeDrawer);
+saveStaffSettingsBtn.addEventListener('click', () => {
+  saveSettings();
+  closeDrawer();
+  alert('已儲存工作人員設定。');
+});
+clearFramesBtn.addEventListener('click', () => {
+  state.frames = [...PRESET_FRAMES];
+  state.selectedFrameId = DEFAULT_FRAME.id;
+  renderFrames();
+  updateLivePreview();
+  saveSettings();
+});
+
+frameUploadInput.addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []);
+  for (const file of files) {
+    const reader = new FileReader();
+    const dataUrl = await new Promise(resolve => {
+      reader.onload = ev => resolve(ev.target.result);
+      reader.readAsDataURL(file);
+    });
+    state.frames.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+      name: file.name.replace(/\.png$/i,''),
+      dataUrl
+    });
+  }
+  state.selectedFrameId = state.frames[state.frames.length - 1].id;
+  renderFrames();
+  updateLivePreview();
+  saveSettings();
+  e.target.value = '';
+});
+
+
+if (navigator.mediaDevices?.addEventListener) {
+  navigator.mediaDevices.addEventListener('devicechange', async () => {
+    await refreshCameraList();
+    renderMeta();
+  });
+}
+
+loadSettings();
+renderCountdownTabs();
+renderLensTabs();
+renderFrames();
+renderShots();
+applyPreviewZoom();
+renderMeta();
+updateLivePreview();
+</script>
+</body>
+</html>
