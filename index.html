@@ -554,18 +554,27 @@
     // 這裡是本版重點：每一張相框都有自己的照片窗座標。
     // 座標以原始相框 667x1000 為基準，合成時會自動等比例放大到 1200x1800。
     const PRESET_FRAMES = [
-      {
-        id: 'classic-cat',
-        name: 'frame.png 原版',
-        dataUrl: './images/frame.png',
-        baseWidth: 667,
-        baseHeight: 1000,
-        slots: [
-          { x: 176, y: 54,  w: 347, h: 198 },
-          { x: 176, y: 276, w: 347, h: 198 },
-          { x: 176, y: 498, w: 347, h: 199 }
-        ]
-      },
+  {
+    id: 'cat-classic',
+    name: 'Utopia Cat 經典款',
+    dataUrl: './images/xiaomao.png',
+    sources: ['./images/xiaomao.png', './xiaomao.png'],
+    slotHints: CLASSIC_SLOT_HINTS
+  },
+  {
+    id: 'dog-warm',
+    name: 'Utopia Dog 暖心款',
+    dataUrl: './images/xiaogou.png',
+    sources: ['./images/xiaogou.png', './xiaogou.png'],
+    slotHints: BLUE_SLOT_HINTS
+  },
+  {
+    id: 'movie-fest',
+    name: 'Utopia Movie Fest 限定款',
+    dataUrl: './images/moviefest.png',
+    sources: ['./images/moviefest.png', './moviefest.png'],
+    slotHints: SEPIA_SLOT_HINTS
+  },
       {
         id: 'movie-fest-gold-blue',
         name: '01.png.png 金藍版',
@@ -603,16 +612,11 @@
         ]
       },
       {
-        id: 'handdrawn-pink',
-        name: 'IMG_3001.PNG 手繪版',
-        dataUrl: './images/IMG_3001.PNG',
-        baseWidth: 667,
-        baseHeight: 1000,
-        slots: [
-          { x: 177, y: 58,  w: 344, h: 194 },
-          { x: 177, y: 279, w: 344, h: 197 },
-          { x: 177, y: 504, w: 344, h: 193 }
-        ]
+        id: 'graduation',
+        name: 'Utopia Graduation 畢業限定款',
+        dataUrl: './images/graduation.png',
+        sources: ['./images/graduation.png', './graduation.png'],
+        slotHints: PIXEL_SLOT_HINTS
       }
     ];
 
