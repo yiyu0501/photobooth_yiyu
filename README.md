@@ -1,74 +1,192 @@
 # Utopia Photo Booth
 
-A browser-based photo booth built for a campus music and movie festival booth.
+A lightweight browser-based photo booth built for events, exhibitions, and interactive installations.
 
-This project lets visitors take a 3-shot photo strip in the browser, apply themed frames, preview the final result, and download the finished image. It was originally built by a student team for a real school event, so the focus is practical use: fast setup, simple workflow, and easy deployment.
+Utopia Photo Booth provides a simple and accessible way to create themed photo strip experiences directly in the browser. Users can capture photos using their device camera, preview the final composition in real time, and instantly download the generated photo strip without requiring a backend server.
 
-## Live demo
+Designed originally for a campus movie festival booth, the project has been refactored into a reusable open-source web application suitable for public events, student projects, and creative activations.
 
-If you deploy this repository with GitHub Pages and keep `index.html` in the project root, the direct link is:
+---
 
-**https://yiyu0501.github.io/photobooth_yiyu/**
+## Features
 
-## What it does
+* Browser-based camera capture
+* Three-photo strip workflow
+* Multiple themed photo frames
+* Real-time preview
+* Instant image export and download
+* Manual image upload support
+* Lightweight static deployment
+* Mobile and desktop browser compatible
 
-- Opens the camera directly in the browser
-- Supports a 3-shot photo strip workflow
-- Lets users switch between preset themed frames
-- Shows live preview and final composite preview
-- Downloads the final photo strip as an image
-- Includes a staff mode for frame management and on-site operation
-- Supports uploading photos as an alternative to live capture
+---
 
-## Included frames
+## Demo
 
-This package includes 4 ready-to-use frames in the `images/` folder:
+This project can be deployed easily using:
 
-- `frame.png`
-- `01.png.png`
-- `02.png.png`
-- `03.png.png`
+* GitHub Pages
+* Netlify
+* Vercel
+* Any static web hosting service
 
-The code is already set up to load these four files automatically.
+---
 
-## Project structure
+## Project Structure
 
 ```text
-photobooth_ready/
+photobooth_yiyu/
 ├── index.html
 ├── README.md
 └── images/
-    ├── frame.png
     ├── 01.png.png
     ├── 02.png.png
-    └── 03.png.png
+    ├── 03.png.png
+    ├── moviefest.png
+    ├── xiaogou.png
+    └── xiaomao.png
 ```
 
-## Quick start
+---
 
-1. Upload `index.html`, `README.md`, and the whole `images/` folder to your GitHub repository root.
-2. In GitHub, go to **Settings → Pages**.
-3. Set the source to **Deploy from a branch**.
-4. Choose **main** branch and **/(root)** folder.
-5. Save and wait for GitHub Pages to finish deploying.
-6. Open your site link.
+## Included Assets
 
-## How to use
+The `images/` directory contains several themed frame templates used by the photo booth interface.
 
-1. Open the page on a tablet, laptop, or desktop browser.
-2. Allow camera access.
-3. Choose one of the preset frames.
-4. Start the capture flow.
-5. Take 3 photos or upload photos manually.
-6. Review the final strip.
-7. Download the result.
+Current assets include:
 
-## Notes
+* `01.png.png`
+* `02.png.png`
+* `03.png.png`
+* `moviefest.png`
+* `xiaogou.png`
+* `xiaomao.png`
 
-- The frame images are expected to stay inside the `images/` folder.
-- If you rename the frame files, update the file paths in `index.html`.
-- For the cleanest public link, keep the main file name as `index.html`.
+You may freely replace these assets with your own frame designs.
+If filenames are modified, update the corresponding paths inside `index.html`.
 
-## About this project
+---
 
-This is not a commercial booth system. It is a student-built web photo booth made for a real campus event, then refined into a public project that other people can test, reuse, and adapt for their own booths or events.
+## Quick Start
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/yiyu0501/photobooth_yiyu.git
+```
+
+### 2. Open the project
+
+Simply open:
+
+```text
+index.html
+```
+
+in your browser.
+
+No build process or package installation is required.
+
+---
+
+## GitHub Pages Deployment
+
+### Enable GitHub Pages
+
+1. Open your repository on GitHub
+2. Navigate to **Settings → Pages**
+3. Under **Build and deployment**
+
+   * Source → `Deploy from a branch`
+   * Branch → `main`
+   * Folder → `/ (root)`
+4. Save the configuration
+
+GitHub will automatically generate a public deployment URL.
+
+---
+
+## Usage Flow
+
+1. Open the application
+2. Allow camera permissions
+3. Select a frame template
+4. Capture three photos
+5. Preview the final composition
+6. Download the generated photo strip
+
+---
+
+## Customization
+
+### Replace Frames
+
+Add new PNG frame templates inside the `images/` folder.
+
+### Modify Layout
+
+The layout and rendering behavior can be customized directly inside:
+
+```text
+index.html
+```
+
+### Event Branding
+
+You can easily adapt the project for:
+
+* School events
+* Brand activations
+* Exhibitions
+* Pop-up installations
+* Fan events
+* Community activities
+
+---
+
+## Technical Notes
+
+* This project is fully front-end based
+* No database or backend server required
+* Works best in modern Chromium-based browsers
+* Camera access requires HTTPS in most browsers
+
+---
+
+## Future Improvements
+
+Potential future features include:
+
+* GIF export
+* QR code download sharing
+* Multi-language support
+* Cloud image storage
+* Animated frame support
+* Touchscreen kiosk mode
+* Countdown sound effects
+
+---
+
+## Contributing
+
+Contributions, improvements, and feature suggestions are welcome.
+
+Feel free to fork the repository and submit pull requests.
+
+---
+
+## License
+
+Please add your preferred open-source license.
+
+Recommended options:
+
+* MIT License
+* Apache 2.0
+* GPL v3
+
+---
+
+## Acknowledgements
+
+Created for a university event photo booth experience and later adapted into an open-source interactive web project.
