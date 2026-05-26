@@ -23,6 +23,8 @@ Designed originally for a campus movie festival booth, the project has been refa
 
 ## Demo
 
+**https://yiyu0501.github.io/photobooth_yiyu/**
+
 This project can be deployed easily using:
 
 * GitHub Pages
