@@ -1,0 +1,1913 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Utopia Photo Booth</title>
+
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --panel:#ffffff;
+      --text:#111827;
+      --muted:#64748b;
+      --line:#e5e7eb;
+      --brand:#111827;
+      --brand-soft:#eef2ff;
+      --red:#dc2626;
+      --red-dark:#991b1b;
+      --ok:#047857;
+      --danger:#b91c1c;
+      --shadow:0 12px 32px rgba(15,23,42,.08);
+      --radius:24px;
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    button,
+    input,
+    select{
+      font:inherit;
+    }
+
+    button{
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .app{
+      width:min(1280px,100%);
+      margin:0 auto;
+      padding:22px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .brand{
+      min-width:0;
+    }
+
+    .brandKicker{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid #dbe4f0;
+      background:#ffffff;
+      color:#334155;
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:.08em;
+      margin-bottom:8px;
+    }
+
+    .brandDot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:var(--red);
+      display:inline-block;
+    }
+
+    .brand h1{
+      font-size:28px;
+      margin:0;
+      line-height:1.15;
+      letter-spacing:.01em;
+    }
+
+    .brand p{
+      margin:5px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
+
+    .topActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:minmax(360px,1fr) minmax(360px,460px);
+      gap:18px;
+      align-items:start;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .panelTitle{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .panelTitle h2{
+      margin:0;
+      font-size:22px;
+      line-height:1.2;
+    }
+
+    .panelTitle p{
+      margin:4px 0 0;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:14px;
+    }
+
+    .btn{
+      border:0;
+      border-radius:999px;
+      padding:10px 16px;
+      background:#111827;
+      color:white;
+      cursor:pointer;
+      font-weight:900;
+      letter-spacing:.01em;
+      transition:transform .12s ease, opacity .12s ease, background .12s ease;
+      white-space:nowrap;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .btn:disabled{
+      opacity:.42;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .btn.secondary{
+      background:#eef2f7;
+      color:#111827;
+      border:1px solid #d8dee9;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin:12px 0;
+    }
+
+    .field{
+      display:grid;
+      gap:6px;
+      flex:1 1 190px;
+    }
+
+    .field label{
+      font-size:13px;
+      color:var(--muted);
+      font-weight:900;
+    }
+
+    select,
+    input[type="password"]{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+      color:#111827;
+      padding:10px 12px;
+      outline:none;
+    }
+
+    input[type="file"]{
+      width:100%;
+      border:1px dashed #cbd5e1;
+      border-radius:18px;
+      padding:14px;
+      background:#f8fafc;
+      cursor:pointer;
+    }
+
+    .frames{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+      gap:10px;
+      margin:10px 0 14px;
+    }
+
+    .frameCard{
+      position:relative;
+      border:2px solid transparent;
+      background:#f8fafc;
+      border-radius:18px;
+      padding:8px;
+      cursor:pointer;
+      text-align:left;
+      transition:.14s ease;
+      overflow:hidden;
+    }
+
+    .frameCard.active{
+      border-color:#111827;
+      background:#fff;
+      box-shadow:0 8px 22px rgba(15,23,42,.12);
+    }
+
+    .frameCard img{
+      width:100%;
+      aspect-ratio:2/3;
+      object-fit:cover;
+      border-radius:12px;
+      background:#111827;
+      display:block;
+    }
+
+    .frameCard span{
+      display:block;
+      margin-top:7px;
+      font-size:12px;
+      color:#334155;
+      font-weight:900;
+      line-height:1.35;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .cameraStage{
+      display:grid;
+      place-items:center;
+      gap:14px;
+      margin-top:8px;
+    }
+
+    .videoWrap{
+      position:relative;
+      width:100%;
+      overflow:hidden;
+      border-radius:22px;
+      border:1px solid #dbe2ea;
+      background:#0f172a;
+      aspect-ratio:4/3;
+      display:grid;
+      place-items:center;
+    }
+
+    video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      background:#0f172a;
+      display:block;
+    }
+
+    .videoWrap.mirror video{
+      transform:scaleX(-1);
+    }
+
+    .cameraHint{
+      position:absolute;
+      inset:auto 18px 18px 18px;
+      padding:10px 12px;
+      border-radius:16px;
+      background:rgba(15,23,42,.68);
+      color:#e5e7eb;
+      text-align:center;
+      font-size:13px;
+      line-height:1.45;
+      backdrop-filter:blur(8px);
+      pointer-events:none;
+    }
+
+    .countdown{
+      position:absolute;
+      inset:0;
+      display:none;
+      place-items:center;
+      background:rgba(15,23,42,.42);
+      color:white;
+      font-size:96px;
+      font-weight:900;
+      text-shadow:0 10px 30px rgba(0,0,0,.45);
+      z-index:4;
+    }
+
+    .countdown.show{
+      display:grid;
+    }
+
+    .shutterArea{
+      width:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:18px;
+      margin-top:2px;
+    }
+
+    .shutterButton{
+      width:78px;
+      height:78px;
+      border-radius:999px;
+      border:4px solid #e11d48;
+      background:#ffffff;
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(15,23,42,.12);
+      transition:transform .12s ease, opacity .12s ease, box-shadow .12s ease;
+      padding:0;
+    }
+
+    .shutterButton:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 28px rgba(15,23,42,.16);
+    }
+
+    .shutterButton:active{
+      transform:scale(.94);
+    }
+
+    .shutterButton:disabled{
+      opacity:.42;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:none;
+      border-color:#9ca3af;
+      background:#f8fafc;
+    }
+
+    .shutterInner{
+      width:54px;
+      height:54px;
+      border-radius:999px;
+      background:#e11d48;
+      display:block;
+    }
+
+    .shutterButton:disabled .shutterInner{
+      background:#9ca3af;
+    }
+
+    .resetButton{
+      border:0;
+      border-radius:999px;
+      padding:11px 18px;
+      background:#fff1f2;
+      color:var(--red-dark);
+      border:1px solid #fecdd3;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .shotList{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .shot{
+      aspect-ratio:4/3;
+      border-radius:16px;
+      overflow:hidden;
+      background:#e5e7eb;
+      display:grid;
+      place-items:center;
+      color:#64748b;
+      font-weight:900;
+      border:1px solid #dbe2ea;
+    }
+
+    .shot img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    .status{
+      min-height:24px;
+      margin:12px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+    }
+
+    .status.ok{
+      color:var(--ok);
+      font-weight:900;
+    }
+
+    .status.bad{
+      color:var(--danger);
+      font-weight:900;
+    }
+
+    .previewShell{
+      position:sticky;
+      top:18px;
+    }
+
+    .previewHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .previewHeader h2{
+      margin:0;
+      font-size:24px;
+    }
+
+    .previewHeader span{
+      color:var(--muted);
+      font-weight:900;
+      font-size:18px;
+    }
+
+    .previewBox{
+      padding:14px;
+      border-radius:28px;
+      background:#0f172a;
+      box-shadow:0 12px 28px rgba(15,23,42,.16);
+    }
+
+    #previewCanvas{
+      width:100%;
+      aspect-ratio:2/3;
+      display:block;
+      border-radius:6px;
+      background:#111827;
+    }
+
+    .downloadBar{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+
+    .videoActionBar{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+
+    .videoActionBar .btn{
+      font-size:14px;
+      padding:9px 14px;
+    }
+
+    .staffPanel{
+      display:none;
+      margin-top:14px;
+      border-top:1px solid var(--line);
+      padding-top:14px;
+    }
+
+    .staffPanel.show{
+      display:block;
+    }
+
+    .smallNote,
+    .hint{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.5;
+      margin-top:8px;
+    }
+
+    .handover{
+      position:fixed;
+      inset:0;
+      z-index:50;
+      background:#111827;
+      color:white;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      text-align:center;
+      cursor:pointer;
+    }
+
+    .handover.show{
+      display:flex;
+    }
+
+    .handoverCard{
+      width:min(560px,100%);
+    }
+
+    .handover h2{
+      margin:0 0 12px;
+      font-size:36px;
+    }
+
+    .handover p{
+      margin:0;
+      color:#cbd5e1;
+      font-size:18px;
+      line-height:1.7;
+    }
+
+    @media (max-width:880px){
+      .app{
+        padding:14px;
+      }
+
+      .grid{
+        grid-template-columns:1fr;
+      }
+
+      .previewShell{
+        position:static;
+      }
+
+      .topbar{
+        align-items:flex-start;
+        flex-direction:column;
+      }
+
+      .topActions{
+        justify-content:flex-start;
+      }
+
+      .shutterArea{
+        flex-direction:column;
+        gap:10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brandKicker">
+          <span class="brandDot"></span>
+          UTOPIA PHOTO BOOTH
+        </div>
+        <h1>Utopia Movie Fest 拍貼機</h1>
+        <p>益智與設計思考社｜三張拍貼條版型</p>
+      </div>
+
+      <div class="topActions">
+        <button class="btn" id="startCameraBtn" type="button">啟動相機</button>
+        <button class="btn secondary" id="staffModeBtn" type="button">工作人員模式</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="panel">
+        <div class="panelTitle">
+          <div>
+            <h2>選擇相框</h2>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>相框選擇</label>
+          <div class="frames" id="framesGrid"></div>
+        </div>
+
+        <div class="panelTitle" style="margin-top:18px;">
+          <div>
+            <h2>拍照介面</h2>
+            <p>啟動相機後，按下中間紅色快門，即可連拍 3 張。</p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="cameraSelect">鏡頭選擇</label>
+            <select id="cameraSelect">
+              <option value="">啟動相機後載入可用鏡頭</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="shotModeSelect">拍攝視角</label>
+            <select id="shotModeSelect">
+              <option value="normal">標準 1x</option>
+              <option value="mirror">自拍鏡像</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="cameraStage">
+          <div class="videoWrap" id="videoWrap">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="cameraHint" id="cameraHint">請先按右上角「啟動相機」，或直接從下方上傳 3 張照片測試。</div>
+            <div class="countdown" id="countdown">5</div>
+          </div>
+
+          <div class="shutterArea">
+            <button class="shutterButton" id="captureBtn" type="button" disabled aria-label="開始連拍三張">
+              <span class="shutterInner" aria-hidden="true"></span>
+            </button>
+            <button class="resetButton" id="clearShotsBtn" type="button">重新拍攝</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="photoUpload">上傳照片</label>
+            <input id="photoUpload" type="file" accept="image/*" multiple>
+          </div>
+        </div>
+
+        <div class="shotList" id="shotList">
+          <div class="shot">1</div>
+          <div class="shot">2</div>
+          <div class="shot">3</div>
+        </div>
+
+        <div class="status" id="status">尚未拍攝，請先啟動相機，或直接上傳 3 張照片測試。</div>
+
+        <div class="staffPanel" id="staffPanel">
+          <div class="panelTitle">
+            <div>
+              <h2>工作人員模式</h2>
+              <p>這版會自動跳過不存在的相框，不會因為畢業圖還沒上傳就整個壞掉。</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="staffPassword">工作人員密碼（可留空）</label>
+              <input id="staffPassword" type="password" placeholder="現場需要再自行設定即可">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="frameUpload">上傳相框 PNG</label>
+              <input id="frameUpload" type="file" accept="image/png,image/*">
+              <div class="smallNote">自訂相框會套用標準三格照片窗。若位置差一點，請開啟「顯示照片窗輔助線」檢查。</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btn secondary" id="resetFramesBtn" type="button">清空自訂相框，恢復預設</button>
+            <label class="hint"><input id="showSlotGuide" type="checkbox"> 顯示照片窗輔助線</label>
+          </div>
+        </div>
+      </section>
+
+      <aside class="previewShell">
+        <div class="previewHeader">
+          <h2>即時相框預覽</h2>
+          <span>每拍一張就會先進框</span>
+        </div>
+
+        <div class="previewBox">
+          <canvas id="previewCanvas" width="1200" height="1800"></canvas>
+        </div>
+
+        <div class="downloadBar">
+          <button class="btn" id="downloadBtn" type="button" disabled>下載／分享成品</button>
+          <button class="btn secondary" id="renderBtn" type="button">更新預覽</button>
+        </div>
+
+        <div class="videoActionBar">
+          <button class="btn secondary" id="shareVideoBtn" type="button" disabled>分享動態拍貼</button>
+          <button class="btn secondary" id="downloadVideoBtn" type="button" disabled>下載動態拍貼</button>
+        </div>
+
+        <p class="smallNote">靜態成品固定為 2:3 直式比例。三連拍完成後，系統會把三段 5 秒花絮合成在相框內，支援分享的平板可用 AirDrop 或儲存到雲端硬碟 App。</p>
+      </aside>
+    </main>
+  </div>
+
+  <div class="handover" id="handover">
+    <div class="handoverCard">
+      <h2>現在請工作人員進場</h2>
+      <p>拍攝已完成。請參加者先離開拍照區，交由工作人員進行下載與輸出處理。<br>點擊任意位置繼續。</p>
+    </div>
+  </div>
+
+  <script>
+    const EXPORT_W = 1200;
+    const EXPORT_H = 1800;
+    const PHOTO_COUNT = 3;
+    const COUNTDOWN_SECONDS = 5;
+
+    /*
+      重要說明：
+      1. 這裡的檔名必須跟 GitHub images 資料夾完全一樣。
+      2. 目前 GitHub 看得到：xiaomao.png、xiaogou.png、moviefest.png、01.png.png、02.png.png、03.png.png。
+      3. 我把「畢業紀念」設成 optional，如果 images 裡沒有 graduation.png，它會自動跳過，不會報紅字。
+      4. 加上 cacheBust 是為了避免 GitHub Pages 或瀏覽器還在讀取重新命名前的舊快取。
+    */
+
+    const CACHE_VERSION = '20260526-v4';
+
+    const FRAME_DEFINITIONS = [
+      {
+        id: 'cat-classic',
+        name: 'Utopia 經典貓',
+        optional: false,
+        sources: [
+          './images/xiaomao.png',
+          'images/xiaomao.png',
+          '/photobooth_yiyu/images/xiaomao.png'
+        ],
+        baseWidth: 667,
+        baseHeight: 1000,
+        slots: [
+          { x: 176, y: 54,  w: 347, h: 198 },
+          { x: 176, y: 276, w: 347, h: 198 },
+          { x: 176, y: 498, w: 347, h: 199 }
+        ]
+      },
+      {
+        id: 'dog-warm',
+        name: 'Utopia 暖心狗',
+        optional: false,
+        sources: [
+          './images/xiaogou.png',
+          'images/xiaogou.png',
+          '/photobooth_yiyu/images/xiaogou.png'
+        ],
+        baseWidth: 667,
+        baseHeight: 1000,
+        slots: [
+          { x: 177, y: 58,  w: 344, h: 194 },
+          { x: 177, y: 279, w: 344, h: 197 },
+          { x: 177, y: 504, w: 344, h: 193 }
+        ]
+      },
+      {
+        id: 'movie-special',
+        name: 'Utopia 電影節特典',
+        optional: false,
+        sources: [
+          './images/moviefest.png',
+          'images/moviefest.png',
+          '/photobooth_yiyu/images/moviefest.png'
+        ],
+        baseWidth: 667,
+        baseHeight: 1000,
+        slots: [
+          { x: 170, y: 97,  w: 330, h: 212 },
+          { x: 170, y: 322, w: 330, h: 215 },
+          { x: 170, y: 550, w: 330, h: 216 }
+        ]
+      },
+      {
+        id: 'graduation-memory',
+        name: 'Utopia 畢業紀念',
+        optional: true,
+        sources: [
+          './images/graduation.png',
+          'images/graduation.png',
+          '/photobooth_yiyu/images/graduation.png',
+          './images/biye.png',
+          'images/biye.png',
+          '/photobooth_yiyu/images/biye.png'
+        ],
+        baseWidth: 667,
+        baseHeight: 1000,
+        slots: [
+          { x: 176, y: 54,  w: 347, h: 198 },
+          { x: 176, y: 276, w: 347, h: 198 },
+          { x: 176, y: 498, w: 347, h: 199 }
+        ]
+      },
+      {
+        id: 'gold-blue-movie',
+        name: 'Utopia 金藍電影節',
+        optional: false,
+        sources: [
+          './images/01.png.png',
+          'images/01.png.png',
+          '/photobooth_yiyu/images/01.png.png'
+        ],
+        baseWidth: 667,
+        baseHeight: 1000,
+        slots: [
+          { x: 160, y: 50,  w: 363, h: 256 },
+          { x: 160, y: 317, w: 363, h: 244 },
+          { x: 160, y: 572, w: 363, h: 219 }
+        ]
+      },
+      {
+        id: 'retro-light',
+        name: 'Utopia 復古光影',
+        optional: false,
+        sources: [
+          './images/02.png.png',
+          'images/02.png.png',
+          '/photobooth_yiyu/images/02.png.png'
+        ],
+        baseWidth: 667,
+        baseHeight: 1000,
+        slots: [
+          { x: 170, y: 97,  w: 330, h: 212 },
+          { x: 170, y: 322, w: 330, h: 215 },
+          { x: 170, y: 550, w: 330, h: 216 }
+        ]
+      },
+      {
+        id: 'star-red-carpet',
+        name: 'Utopia 星空紅毯',
+        optional: false,
+        sources: [
+          './images/03.png.png',
+          'images/03.png.png',
+          '/photobooth_yiyu/images/03.png.png'
+        ],
+        baseWidth: 667,
+        baseHeight: 1000,
+        slots: [
+          { x: 136, y: 156, w: 356, h: 216 },
+          { x: 136, y: 385, w: 356, h: 215 },
+          { x: 136, y: 614, w: 356, h: 177 }
+        ]
+      }
+    ];
+
+    const DEFAULT_AUTO_SLOTS = [
+      { x: .255, y: .085, w: .49, h: .22 },
+      { x: .255, y: .325, w: .49, h: .22 },
+      { x: .255, y: .565, w: .49, h: .22 }
+    ];
+
+    const state = {
+      frames: [],
+      currentFrameId: null,
+      photos: [],
+      stream: null,
+      capturing: false,
+      videoClips: [],
+      videoBlob: null,
+      videoUrl: null
+    };
+
+    const els = {
+      startCameraBtn: document.getElementById('startCameraBtn'),
+      staffModeBtn: document.getElementById('staffModeBtn'),
+      staffPanel: document.getElementById('staffPanel'),
+      cameraSelect: document.getElementById('cameraSelect'),
+      shotModeSelect: document.getElementById('shotModeSelect'),
+      videoWrap: document.getElementById('videoWrap'),
+      video: document.getElementById('video'),
+      cameraHint: document.getElementById('cameraHint'),
+      countdown: document.getElementById('countdown'),
+      captureBtn: document.getElementById('captureBtn'),
+      clearShotsBtn: document.getElementById('clearShotsBtn'),
+      photoUpload: document.getElementById('photoUpload'),
+      frameUpload: document.getElementById('frameUpload'),
+      resetFramesBtn: document.getElementById('resetFramesBtn'),
+      framesGrid: document.getElementById('framesGrid'),
+      shotList: document.getElementById('shotList'),
+      status: document.getElementById('status'),
+      previewCanvas: document.getElementById('previewCanvas'),
+      downloadBtn: document.getElementById('downloadBtn'),
+      renderBtn: document.getElementById('renderBtn'),
+      shareVideoBtn: document.getElementById('shareVideoBtn'),
+      downloadVideoBtn: document.getElementById('downloadVideoBtn'),
+      handover: document.getElementById('handover'),
+      showSlotGuide: document.getElementById('showSlotGuide')
+    };
+
+    function setStatus(message, type = ''){
+      els.status.textContent = message;
+      els.status.className = 'status' + (type ? ' ' + type : '');
+    }
+
+    function wait(ms){
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function withCacheBust(src){
+      if (src.startsWith('data:')) return src;
+      const separator = src.includes('?') ? '&' : '?';
+      return `${src}${separator}v=${encodeURIComponent(CACHE_VERSION)}`;
+    }
+
+    function loadImage(src){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+
+        img.onload = () => resolve({
+          img,
+          usedSource: src
+        });
+
+        img.onerror = () => reject(new Error('圖片讀取失敗：' + src));
+
+        img.src = withCacheBust(src);
+      });
+    }
+
+    async function loadFirstAvailableSource(sources){
+      let lastError = null;
+
+      for (const src of sources){
+        try{
+          return await loadImage(src);
+        }catch(err){
+          lastError = err;
+        }
+      }
+
+      throw lastError || new Error('沒有可用圖片來源');
+    }
+
+    function fileToDataURL(file){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function getCurrentFrame(){
+      return state.frames.find(frame => frame.id === state.currentFrameId) || state.frames[0] || null;
+    }
+
+    function normalizeSlot(slot, frame){
+      if ('x' in slot && slot.x > 1){
+        return {
+          x: slot.x / frame.baseWidth,
+          y: slot.y / frame.baseHeight,
+          w: slot.w / frame.baseWidth,
+          h: slot.h / frame.baseHeight
+        };
+      }
+
+      return slot;
+    }
+
+    function scaledSlot(slot, frame, bleedPx = 4){
+      const n = normalizeSlot(slot, frame);
+      const bx = bleedPx / EXPORT_W;
+      const by = bleedPx / EXPORT_H;
+
+      return {
+        x: (n.x - bx) * EXPORT_W,
+        y: (n.y - by) * EXPORT_H,
+        w: (n.w + bx * 2) * EXPORT_W,
+        h: (n.h + by * 2) * EXPORT_H
+      };
+    }
+
+    function drawCover(ctx, source, dx, dy, dw, dh){
+      const sw = source.videoWidth || source.naturalWidth || source.width;
+      const sh = source.videoHeight || source.naturalHeight || source.height;
+
+      if (!sw || !sh || !dw || !dh) return;
+
+      const sourceRatio = sw / sh;
+      const destRatio = dw / dh;
+
+      let sx = 0;
+      let sy = 0;
+      let sWidth = sw;
+      let sHeight = sh;
+
+      if (sourceRatio > destRatio){
+        sWidth = sh * destRatio;
+        sx = (sw - sWidth) / 2;
+      }else{
+        sHeight = sw / destRatio;
+        sy = (sh - sHeight) / 2;
+      }
+
+      ctx.drawImage(source, sx, sy, sWidth, sHeight, dx, dy, dw, dh);
+    }
+
+    function drawPlaceholder(ctx, index, slot){
+      ctx.save();
+      ctx.fillStyle = '#111827';
+      ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+      ctx.strokeStyle = 'rgba(255,255,255,.18)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(slot.x, slot.y, slot.w, slot.h);
+      ctx.fillStyle = 'rgba(255,255,255,.35)';
+      ctx.font = '900 54px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(index + 1), slot.x + slot.w / 2, slot.y + slot.h / 2);
+      ctx.restore();
+    }
+
+    function drawSlotGuide(ctx, slot){
+      ctx.save();
+      ctx.setLineDash([12, 8]);
+      ctx.strokeStyle = 'rgba(56,189,248,.9)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(slot.x, slot.y, slot.w, slot.h);
+      ctx.restore();
+    }
+
+    function renderPreview(){
+      const canvas = els.previewCanvas;
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = EXPORT_W;
+      canvas.height = EXPORT_H;
+
+      const frame = getCurrentFrame();
+
+      ctx.clearRect(0, 0, EXPORT_W, EXPORT_H);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, EXPORT_W, EXPORT_H);
+
+      if (!frame){
+        ctx.fillStyle = '#fff';
+        ctx.font = '700 42px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('尚未載入相框', EXPORT_W / 2, EXPORT_H / 2);
+        els.downloadBtn.disabled = true;
+        return;
+      }
+
+      const slots = frame.slots && frame.slots.length >= 3 ? frame.slots : DEFAULT_AUTO_SLOTS;
+
+      for (let i = 0; i < PHOTO_COUNT; i++){
+        const slot = scaledSlot(slots[i], frame, 5);
+
+        if (state.photos[i]){
+          drawCover(ctx, state.photos[i], slot.x, slot.y, slot.w, slot.h);
+        }else{
+          drawPlaceholder(ctx, i, slot);
+        }
+      }
+
+      ctx.drawImage(frame.img, 0, 0, EXPORT_W, EXPORT_H);
+
+      if (els.showSlotGuide.checked){
+        for (let i = 0; i < PHOTO_COUNT; i++){
+          drawSlotGuide(ctx, scaledSlot(slots[i], frame, 0));
+        }
+      }
+
+      els.downloadBtn.disabled = state.photos.length < PHOTO_COUNT;
+    }
+
+    function renderShotList(){
+      els.shotList.innerHTML = '';
+
+      for (let i = 0; i < PHOTO_COUNT; i++){
+        const cell = document.createElement('div');
+        cell.className = 'shot';
+
+        if (state.photos[i]){
+          const img = document.createElement('img');
+          img.src = state.photos[i].src;
+          cell.appendChild(img);
+        }else{
+          cell.textContent = String(i + 1);
+        }
+
+        els.shotList.appendChild(cell);
+      }
+    }
+
+    function renderFrameCards(){
+      els.framesGrid.innerHTML = '';
+
+      state.frames.forEach(frame => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'frameCard' + (frame.id === state.currentFrameId ? ' active' : '');
+
+        const image = document.createElement('img');
+        image.alt = frame.name;
+        image.src = frame.displaySource || frame.dataUrl;
+
+        const label = document.createElement('span');
+        label.textContent = frame.name;
+
+        card.appendChild(image);
+        card.appendChild(label);
+
+        card.addEventListener('click', () => {
+          state.currentFrameId = frame.id;
+          renderFrameCards();
+          renderPreview();
+        });
+
+        els.framesGrid.appendChild(card);
+      });
+    }
+
+    async function loadPresetFrames(){
+      const loaded = [];
+      const failedRequired = [];
+      const skippedOptional = [];
+
+      for (const definition of FRAME_DEFINITIONS){
+        try{
+          const result = await loadFirstAvailableSource(definition.sources);
+          loaded.push({
+            ...definition,
+            img: result.img,
+            dataUrl: result.usedSource,
+            displaySource: result.img.src
+          });
+        }catch(err){
+          console.warn(err);
+
+          if (definition.optional){
+            skippedOptional.push(definition.name);
+          }else{
+            failedRequired.push(definition.name);
+          }
+        }
+      }
+
+      state.frames = loaded;
+      state.currentFrameId = loaded[0] ? loaded[0].id : null;
+
+      renderFrameCards();
+      renderPreview();
+
+      if (!loaded.length){
+        setStatus('沒有成功載入相框。請確認 images 資料夾與檔名大小寫，並確認 GitHub Pages 已重新部署。', 'bad');
+        return;
+      }
+
+      if (failedRequired.length){
+        setStatus(`已載入 ${loaded.length} 款相框；必要相框讀不到：${failedRequired.join('、')}。通常是 GitHub Pages 還沒更新或檔名大小寫不同。`, 'bad');
+        return;
+      }
+
+      if (skippedOptional.length){
+        setStatus(`已載入 ${loaded.length} 款相框；${skippedOptional.join('、')} 目前沒有檔案，所以先自動跳過。`, 'ok');
+        return;
+      }
+
+      setStatus(`已載入 ${loaded.length} 款相框。可以啟動相機拍攝，或先上傳 3 張照片測試。`, 'ok');
+    }
+
+    async function refreshCameras(){
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter(device => device.kind === 'videoinput');
+      const current = els.cameraSelect.value;
+
+      els.cameraSelect.innerHTML = '';
+
+      if (!cameras.length){
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '沒有偵測到鏡頭';
+        els.cameraSelect.appendChild(opt);
+        return;
+      }
+
+      cameras.forEach((camera, index) => {
+        const opt = document.createElement('option');
+        opt.value = camera.deviceId;
+        opt.textContent = camera.label || `鏡頭 ${index + 1}`;
+        els.cameraSelect.appendChild(opt);
+      });
+
+      if (current && cameras.some(camera => camera.deviceId === current)){
+        els.cameraSelect.value = current;
+      }
+    }
+
+    function stopCamera(){
+      if (state.stream){
+        state.stream.getTracks().forEach(track => track.stop());
+        state.stream = null;
+      }
+    }
+
+    async function startCamera(){
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        setStatus('這個瀏覽器不支援相機。請改用 Chrome / Safari，或直接上傳照片。', 'bad');
+        return;
+      }
+
+      stopCamera();
+
+      const selectedId = els.cameraSelect.value;
+      const videoConstraint = selectedId
+        ? { deviceId: { exact: selectedId }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+        : { facingMode: 'user', width: { ideal: 1920 }, height: { ideal: 1080 } };
+
+      try{
+        state.stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraint,
+          audio: false
+        });
+
+        els.video.srcObject = state.stream;
+        await els.video.play();
+        await refreshCameras();
+
+        els.captureBtn.disabled = false;
+        els.cameraHint.style.display = 'none';
+
+        setStatus('相機已啟動。按中間紅色快門即可開始連拍，系統會同步錄下三段 5 秒花絮並嘗試合成動態拍貼。', 'ok');
+      }catch(err){
+        console.error(err);
+        setStatus('相機啟動失敗。請確認瀏覽器權限，或改用上傳照片。', 'bad');
+      }
+    }
+
+    async function captureCurrentPhoto(){
+      const video = els.video;
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+
+      if (!vw || !vh) throw new Error('相機尚未準備好');
+
+      const c = document.createElement('canvas');
+      c.width = vw;
+      c.height = vh;
+
+      const ctx = c.getContext('2d');
+
+      if (els.shotModeSelect.value === 'mirror'){
+        ctx.translate(vw, 0);
+        ctx.scale(-1, 1);
+      }
+
+      ctx.drawImage(video, 0, 0, vw, vh);
+
+      const result = await loadImage(c.toDataURL('image/jpeg', 0.95));
+      return result.img;
+    }
+
+    async function runCountdown(seconds){
+      els.countdown.classList.add('show');
+
+      for (let i = seconds; i >= 1; i--){
+        els.countdown.textContent = String(i);
+        await wait(1000);
+      }
+
+      els.countdown.textContent = '';
+      els.countdown.classList.remove('show');
+    }
+
+    async function captureThreePhotos(){
+      if (state.capturing) return;
+
+      if (!state.stream){
+        setStatus('請先啟動相機，或直接上傳照片。', 'bad');
+        return;
+      }
+
+      state.capturing = true;
+      els.captureBtn.disabled = true;
+      state.photos = [];
+      state.videoClips = [];
+      clearMotionVideoOnly();
+
+      renderShotList();
+      renderPreview();
+
+      let recordingUnsupported = false;
+
+      try{
+        for (let i = 0; i < PHOTO_COUNT; i++){
+          setStatus(`第 ${i + 1} 段花絮開始錄影，倒數 ${COUNTDOWN_SECONDS} 秒後拍照。`);
+
+          const clipSession = startRecordingClip();
+
+          if (!clipSession){
+            recordingUnsupported = true;
+          }
+
+          await runCountdown(COUNTDOWN_SECONDS);
+
+          const photo = await captureCurrentPhoto();
+          state.photos.push(photo);
+
+          if (clipSession){
+            const clipBlob = await stopRecordingClip(clipSession);
+
+            if (clipBlob && clipBlob.size){
+              state.videoClips[i] = clipBlob;
+            }
+          }
+
+          renderShotList();
+          renderPreview();
+
+          setStatus(`第 ${i + 1} 張完成，第 ${i + 1} 段花絮已保存。`, 'ok');
+
+          if (i < PHOTO_COUNT - 1){
+            await wait(550);
+          }
+        }
+
+        // 第三張拍完後立刻跳出交接畫面，不等動態拍貼合成完成。
+        els.handover.classList.add('show');
+
+        const canMakeMotion = state.videoClips.filter(Boolean).length >= PHOTO_COUNT && !recordingUnsupported;
+
+        if (canMakeMotion){
+          setStatus('三張都拍完了。靜態成品可立即分享，動態拍貼正在背景合成。', 'ok');
+          buildMotionVideoAfterHandover();
+        }else if (recordingUnsupported){
+          setStatus('三張都拍完了。這個瀏覽器不支援錄影或動態合成，因此只產出靜態成品。', 'ok');
+        }else{
+          setStatus('三張都拍完了，可以下載或分享靜態成品；動態拍貼片段不足，沒有合成。', 'ok');
+        }
+      }catch(err){
+        console.error(err);
+        setStatus('拍攝失敗，請重新啟動相機再試一次。', 'bad');
+      }finally{
+        state.capturing = false;
+        els.captureBtn.disabled = !state.stream;
+        els.countdown.classList.remove('show');
+      }
+    }
+
+    async function buildMotionVideoAfterHandover(){
+      // 先讓瀏覽器把黑色交接畫面畫出來，再開始比較吃效能的影片合成。
+      await wait(180);
+
+      try{
+        const motionBlob = await composeMotionBoothVideo();
+        const motionSaved = saveVideoClip(motionBlob);
+
+        if (motionSaved){
+          setStatus('動態拍貼已合成完成，可以分享或下載。', 'ok');
+        }else{
+          setStatus('靜態成品已完成；這次動態拍貼合成沒有成功。', 'ok');
+        }
+      }catch(err){
+        console.error('背景合成動態拍貼失敗：', err);
+        setStatus('靜態成品已完成；這次動態拍貼合成失敗。', 'ok');
+      }
+    }
+
+    async function handlePhotoUpload(event){
+      const files = Array.from(event.target.files || []).slice(0, PHOTO_COUNT);
+      if (!files.length) return;
+
+      try{
+        const images = [];
+
+        for (const file of files){
+          const dataUrl = await fileToDataURL(file);
+          const result = await loadImage(dataUrl);
+          images.push(result.img);
+        }
+
+        state.photos = images.slice(0, PHOTO_COUNT);
+
+        renderShotList();
+        renderPreview();
+
+        setStatus(`已載入 ${state.photos.length} 張照片。${state.photos.length < 3 ? '還可以再補照片。' : '可以下載成品。'}`, 'ok');
+      }catch(err){
+        console.error(err);
+        setStatus('照片讀取失敗，請換一張圖片試試。', 'bad');
+      }
+    }
+
+    function clearShots(){
+      state.photos = [];
+      els.photoUpload.value = '';
+      clearVideoClip();
+
+      renderShotList();
+      renderPreview();
+
+      setStatus('已清空照片與動態拍貼，可以重新拍攝或重新上傳。');
+    }
+
+    async function handleFrameUpload(event){
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      try{
+        const dataUrl = await fileToDataURL(file);
+        const result = await loadImage(dataUrl);
+        const img = result.img;
+
+        const customFrame = {
+          id: 'custom-' + Date.now(),
+          name: file.name || '自訂相框',
+          dataUrl,
+          displaySource: dataUrl,
+          img,
+          baseWidth: img.naturalWidth,
+          baseHeight: img.naturalHeight,
+          slots: DEFAULT_AUTO_SLOTS
+        };
+
+        state.frames.push(customFrame);
+        state.currentFrameId = customFrame.id;
+
+        renderFrameCards();
+        renderPreview();
+
+        setStatus('自訂相框已載入。若位置差一點，請開啟「顯示照片窗輔助線」檢查。', 'ok');
+      }catch(err){
+        console.error(err);
+        setStatus('自訂相框讀取失敗。請確認是 PNG 或一般圖片格式。', 'bad');
+      }
+    }
+
+    function resetFrames(){
+      state.frames = state.frames.filter(frame => FRAME_DEFINITIONS.some(definition => definition.id === frame.id));
+      state.currentFrameId = state.frames[0] ? state.frames[0].id : null;
+      els.frameUpload.value = '';
+
+      renderFrameCards();
+      renderPreview();
+
+      setStatus('已恢復預設相框。', 'ok');
+    }
+
+    function getSupportedRecordingMimeType(){
+      if (!window.MediaRecorder || !MediaRecorder.isTypeSupported){
+        return '';
+      }
+
+      const candidates = [
+        'video/mp4;codecs=h264',
+        'video/mp4',
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm'
+      ];
+
+      return candidates.find(type => MediaRecorder.isTypeSupported(type)) || '';
+    }
+
+    function clearVideoClip(){
+      if (state.videoUrl){
+        URL.revokeObjectURL(state.videoUrl);
+      }
+
+      state.videoClips = [];
+      state.videoBlob = null;
+      state.videoUrl = null;
+
+      els.shareVideoBtn.disabled = true;
+      els.downloadVideoBtn.disabled = true;
+    }
+
+    function clearMotionVideoOnly(){
+      if (state.videoUrl){
+        URL.revokeObjectURL(state.videoUrl);
+      }
+
+      state.videoBlob = null;
+      state.videoUrl = null;
+
+      els.shareVideoBtn.disabled = true;
+      els.downloadVideoBtn.disabled = true;
+    }
+
+    function saveVideoClip(blob){
+      if (!blob || !blob.size){
+        return false;
+      }
+
+      if (state.videoUrl){
+        URL.revokeObjectURL(state.videoUrl);
+      }
+
+      state.videoBlob = blob;
+      state.videoUrl = URL.createObjectURL(blob);
+
+      els.shareVideoBtn.disabled = false;
+      els.downloadVideoBtn.disabled = false;
+
+      return true;
+    }
+
+    function startRecordingClip(){
+      if (!window.MediaRecorder || !state.stream){
+        return null;
+      }
+
+      try{
+        const videoTracks = state.stream.getVideoTracks();
+
+        if (!videoTracks.length){
+          return null;
+        }
+
+        const recordStream = new MediaStream(videoTracks);
+        const mimeType = getSupportedRecordingMimeType();
+        const options = mimeType ? { mimeType } : undefined;
+        const recorder = new MediaRecorder(recordStream, options);
+        const chunks = [];
+
+        recorder.ondataavailable = event => {
+          if (event.data && event.data.size > 0){
+            chunks.push(event.data);
+          }
+        };
+
+        const finished = new Promise(resolve => {
+          recorder.onstop = () => {
+            const type = mimeType || (chunks[0] && chunks[0].type) || 'video/webm';
+            resolve(chunks.length ? new Blob(chunks, { type }) : null);
+          };
+        });
+
+        recorder.start(250);
+
+        return {
+          recorder,
+          finished
+        };
+      }catch(err){
+        console.warn('錄影啟動失敗：', err);
+        return null;
+      }
+    }
+
+    async function stopRecordingClip(session){
+      if (!session || !session.recorder){
+        return null;
+      }
+
+      if (session.recorder.state !== 'inactive'){
+        session.recorder.stop();
+      }
+
+      return await session.finished;
+    }
+
+    function createVideoElementFromBlob(blob){
+      return new Promise((resolve, reject) => {
+        if (!blob || !blob.size){
+          reject(new Error('空的影片片段'));
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const video = document.createElement('video');
+
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.src = url;
+
+        const cleanAndReject = err => {
+          URL.revokeObjectURL(url);
+          reject(err);
+        };
+
+        video.onloadedmetadata = () => {
+          resolve({
+            video,
+            url
+          });
+        };
+
+        video.onerror = () => cleanAndReject(new Error('影片片段讀取失敗'));
+
+        video.load();
+      });
+    }
+
+    function canComposeMotionVideo(){
+      const testCanvas = document.createElement('canvas');
+      return Boolean(
+        window.MediaRecorder &&
+        testCanvas.captureStream &&
+        typeof testCanvas.captureStream === 'function'
+      );
+    }
+
+    function drawMotionFrame(ctx, frame, videoSources){
+      const slots = frame.slots && frame.slots.length >= 3 ? frame.slots : DEFAULT_AUTO_SLOTS;
+
+      ctx.clearRect(0, 0, EXPORT_W, EXPORT_H);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, EXPORT_W, EXPORT_H);
+
+      for (let i = 0; i < PHOTO_COUNT; i++){
+        const slot = scaledSlot(slots[i], frame, 5);
+        const source = videoSources[i] && videoSources[i].video;
+
+        if (source && source.readyState >= 2){
+          drawCover(ctx, source, slot.x, slot.y, slot.w, slot.h);
+        }else if (state.photos[i]){
+          drawCover(ctx, state.photos[i], slot.x, slot.y, slot.w, slot.h);
+        }else{
+          drawPlaceholder(ctx, i, slot);
+        }
+      }
+
+      ctx.drawImage(frame.img, 0, 0, EXPORT_W, EXPORT_H);
+    }
+
+    async function composeMotionBoothVideo(){
+      const frame = getCurrentFrame();
+
+      if (!frame){
+        return null;
+      }
+
+      if (!canComposeMotionVideo()){
+        console.warn('這個瀏覽器不支援 canvas.captureStream 或 MediaRecorder，無法合成動態拍貼。');
+        return null;
+      }
+
+      const usableClips = state.videoClips.filter(Boolean);
+
+      if (usableClips.length < PHOTO_COUNT){
+        console.warn('影片片段不足，無法合成動態拍貼。');
+        return null;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = EXPORT_W;
+      canvas.height = EXPORT_H;
+
+      const ctx = canvas.getContext('2d');
+      const stream = canvas.captureStream(30);
+      const mimeType = getSupportedRecordingMimeType();
+      const options = mimeType ? { mimeType } : undefined;
+      const recorder = new MediaRecorder(stream, options);
+      const chunks = [];
+
+      recorder.ondataavailable = event => {
+        if (event.data && event.data.size > 0){
+          chunks.push(event.data);
+        }
+      };
+
+      const stopped = new Promise(resolve => {
+        recorder.onstop = () => {
+          const type = mimeType || (chunks[0] && chunks[0].type) || 'video/webm';
+          resolve(chunks.length ? new Blob(chunks, { type }) : null);
+        };
+      });
+
+      const videoSources = [];
+
+      try{
+        for (const clip of state.videoClips){
+          videoSources.push(await createVideoElementFromBlob(clip));
+        }
+
+        for (const source of videoSources){
+          try{
+            source.video.currentTime = 0;
+            await source.video.play();
+          }catch(err){
+            console.warn('影片播放啟動失敗，仍會嘗試合成：', err);
+          }
+        }
+
+        recorder.start(250);
+
+        const durationMs = COUNTDOWN_SECONDS * 1000;
+        const startTime = performance.now();
+
+        await new Promise(resolve => {
+          const draw = now => {
+            drawMotionFrame(ctx, frame, videoSources);
+
+            if (now - startTime < durationMs){
+              requestAnimationFrame(draw);
+            }else{
+              resolve();
+            }
+          };
+
+          requestAnimationFrame(draw);
+        });
+
+        if (recorder.state !== 'inactive'){
+          recorder.stop();
+        }
+
+        const blob = await stopped;
+
+        return blob;
+      }catch(err){
+        console.error('動態拍貼合成失敗：', err);
+
+        if (recorder.state !== 'inactive'){
+          recorder.stop();
+        }
+
+        return null;
+      }finally{
+        videoSources.forEach(source => {
+          source.video.pause();
+          source.video.removeAttribute('src');
+          source.video.load();
+          URL.revokeObjectURL(source.url);
+        });
+      }
+    }
+
+    function getVideoFilename(){
+      const ext = getExtensionFromMimeType(state.videoBlob && state.videoBlob.type);
+      return `utopia-motion-photostrip-${getTimestampText()}.${ext}`;
+    }
+
+    async function shareVideoClip(){
+      if (!state.videoBlob){
+        setStatus('目前還沒有動態拍貼。請先完成一次三連拍。', 'bad');
+        return;
+      }
+
+      const filename = getVideoFilename();
+      const shared = await shareBlobIfAvailable(
+        state.videoBlob,
+        filename,
+        'Utopia 動態拍貼',
+        'Utopia 拍貼機動態成品'
+      );
+
+      if (shared){
+        setStatus('已開啟動態拍貼分享選單。可選 AirDrop、儲存到檔案，或分享至雲端硬碟 App。', 'ok');
+        return;
+      }
+
+      saveBlob(state.videoBlob, filename);
+      setStatus('此裝置無法直接分享動態拍貼，已改為下載影片。', 'ok');
+    }
+
+    function downloadVideoClip(){
+      if (!state.videoBlob){
+        setStatus('目前還沒有動態拍貼。請先完成一次三連拍。', 'bad');
+        return;
+      }
+
+      saveBlob(state.videoBlob, getVideoFilename());
+      setStatus('動態拍貼已下載。', 'ok');
+    }
+
+    function getTimestampText(){
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+
+      return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+    }
+
+    function canvasToBlob(canvas, type = 'image/png', quality){
+      return new Promise(resolve => {
+        canvas.toBlob(blob => resolve(blob), type, quality);
+      });
+    }
+
+    function saveBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+
+      a.href = url;
+      a.download = filename;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function getExtensionFromMimeType(mimeType){
+      if (!mimeType) return 'webm';
+      if (mimeType.includes('mp4')) return 'mp4';
+      if (mimeType.includes('quicktime')) return 'mov';
+      if (mimeType.includes('webm')) return 'webm';
+      if (mimeType.includes('png')) return 'png';
+      return 'bin';
+    }
+
+    async function shareBlobIfAvailable(blob, filename, title, text){
+      if (!blob) return false;
+
+      if (!navigator.share || typeof File === 'undefined'){
+        return false;
+      }
+
+      const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+      const shareData = {
+        files: [file],
+        title,
+        text
+      };
+
+      if (navigator.canShare && !navigator.canShare({ files: [file] })){
+        return false;
+      }
+
+      try{
+        await navigator.share(shareData);
+        return true;
+      }catch(err){
+        if (err && err.name === 'AbortError'){
+          setStatus('已取消分享。');
+          return true;
+        }
+
+        console.warn(err);
+        return false;
+      }
+    }
+
+    async function downloadImage(){
+      renderPreview();
+
+      if (state.photos.length < PHOTO_COUNT){
+        setStatus('請先拍滿或上傳 3 張照片再下載。', 'bad');
+        return;
+      }
+
+      const blob = await canvasToBlob(els.previewCanvas, 'image/png');
+
+      if (!blob){
+        setStatus('下載失敗，請再試一次。', 'bad');
+        return;
+      }
+
+      const filename = `utopia-photobooth-${getTimestampText()}.png`;
+      const shared = await shareBlobIfAvailable(
+        blob,
+        filename,
+        'Utopia Photo Booth',
+        'Utopia 拍貼機成品'
+      );
+
+      if (shared){
+        setStatus('已開啟分享選單。若使用 iPad，可在分享選單裡選 AirDrop。', 'ok');
+        return;
+      }
+
+      saveBlob(blob, filename);
+      setStatus('此裝置沒有開啟分享選單，已改為直接下載成品。', 'ok');
+    }
+
+    function syncShotMode(){
+      els.videoWrap.classList.toggle('mirror', els.shotModeSelect.value === 'mirror');
+    }
+
+    els.startCameraBtn.addEventListener('click', startCamera);
+
+    els.cameraSelect.addEventListener('change', () => {
+      if (state.stream) startCamera();
+    });
+
+    els.shotModeSelect.addEventListener('change', syncShotMode);
+    els.captureBtn.addEventListener('click', captureThreePhotos);
+    els.clearShotsBtn.addEventListener('click', clearShots);
+    els.photoUpload.addEventListener('change', handlePhotoUpload);
+    els.frameUpload.addEventListener('change', handleFrameUpload);
+    els.resetFramesBtn.addEventListener('click', resetFrames);
+    els.renderBtn.addEventListener('click', renderPreview);
+    els.downloadBtn.addEventListener('click', downloadImage);
+    els.shareVideoBtn.addEventListener('click', shareVideoClip);
+    els.downloadVideoBtn.addEventListener('click', downloadVideoClip);
+
+    els.staffModeBtn.addEventListener('click', () => {
+      els.staffPanel.classList.toggle('show');
+      els.staffModeBtn.textContent = els.staffPanel.classList.contains('show') ? '關閉工作人員模式' : '工作人員模式';
+    });
+
+    els.handover.addEventListener('click', () => {
+      els.handover.classList.remove('show');
+    });
+
+    els.showSlotGuide.addEventListener('change', renderPreview);
+
+    window.addEventListener('beforeunload', stopCamera);
+
+    renderShotList();
+    syncShotMode();
+    loadPresetFrames();
+  </script>
+</body>
+</html>
